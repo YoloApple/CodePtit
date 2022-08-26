@@ -1,0 +1,237 @@
+"""""
+from turtle import*
+color("pink")
+shape("triangle")
+speed(9)
+pensize(10)
+for x in range(100):
+    forward(100)
+    right(100)
+"""
+
+# CircleSpiral.py
+import turtle
+"""
+t=turtle.Pen()
+t.pencolor("black")
+for x in range(100):
+    t.circle(x)
+    t.left(90)
+    """
+    import pygame, sys, random, math
+2 from pygame.locals import *
+3
+4 WINDOWWIDTH = 600
+5 WINDOWHEIGHT = 600
+6 FPS = 60
+7 SIZE = 4.5 # Kích thước viên đạn nổ ra
+8 SPEED_CHANGE_SIZE = 0.05 # Tốc độ nhỏ lại của viên đạn khi nổ ra
+9 CHANGE_SPEED = 0.07 # Tốc độ chậm lại của viên đạn
+10 RAD = math.pi/180 # Đỏi từ radian sang độ
+11 A_FALL = 1.5 # Gia tốc rơi tự do
+12 NUM_BULLET = 50 # Số đạn nổ ra trong 1 quả pháo
+13 SPEED_MIN = 2 # Tốc độ nhỏ nhất của 1 viên đạn
+14 SPEED_MAX = 4 # Tốc độ lớn nhất của một viên đạn
+15 TIME_CREAT_FW = 40 # Khoảng thời gian liên tiếp giữa 2 lần bắn
+16 NUM_FIREWORKS_MAX = 3 # Số lượng pháo lớn nhất bắn lên
+17 NUM_FIREWORKS_MIN = 1 # Số lượng pháo nhỏ nhất bắn lên
+18 SPEED_FLY_UP_MAX = 12 # Tốc độ lớn nhất của viên đạn bay lên (trước khi nổ)
+19 SPEED_FLY_UP_MIN = 8 # Tốc độ nhỏ nhất của viên đạn bay lên (trước khi nổ)
+20
+21 class Dot(): # Những chấm theo sau của mỗi viên đạn
+22     def __init__(self, x, y, size, color):
+23         self.x = x
+24         self.y = y
+25         self.size = size
+26         self.color = color
+27     def update(self):
+28         # Giảm kích thước chấm
+29         if self.size > 0:
+30             self.size -= SPEED_CHANGE_SIZE*5
+31         else:
+32             self.size = 0
+33     def draw(self): # Vẽ một chấm
+34         if self.size > 0:
+35             pygame.draw.circle(DISPLAYSURF, self.color, (int(self.x), int(self.y)), int(self.size))
+36         
+37
+38 class BulletFlyUp(): # Viên đạn bay lên trước khi nổ
+39     def __init__(self, speed, x):
+40         self.speed = speed
+41         self.x = x
+42         self.y = WINDOWHEIGHT
+43         self.dots = [] # Một list các chấm theo sau
+44         self.size = SIZE/2
+45         self.color = (255, 255, 100)
+46
+47     def update(self):
+48         self.dots.append(Dot(self.x, self.y, self.size, self.color)) # Mỗi lần đạn đi qua sẽ có một chấm thêm vào
+49         # Xác định lại vị trí viên đạn
+50         self.y -= self.speed
+51         self.speed -= A_FALL*0.1
+52         # update từng chấm
+53         for i in range(len(self.dots)):
+54             self.dots[i].update()
+55         # Xoá những chấm có kích thước <= 0
+56         i = 0
+57         while i < len(self.dots):
+58             if self.dots[i].size <= 0:
+59                 self.dots.pop(i)
+60             else:
+61                 i += 1
+62
+63     def draw(self):
+64         pygame.draw.circle(DISPLAYSURF, self.color, (int(self.x), int(self.y)), int(self.size)) # Vẽ viên đạn
+65         # Vẽ từng chấm
+66         for i in range(len(self.dots)):
+67             self.dots[i].draw()
+68         
+69         
+70
+71 class Bullet(): # Viên đạn sau khi nổ
+72     def __init__(self, x, y, speed, angle, color):
+73         self.x = x
+74         self.y = y
+75         self.speed = speed
+76         self.angle = angle # Góc hợp bởi viên đạn và phương ngang
+77         self.size = SIZE
+78         self.color = color
+79
+80     def update(self):
+81         # Xác định tốc độ theo 2 phương
+82         speedX = self.speed * math.cos(self.angle*RAD)
+83         speedY = self.speed * -math.sin(self.angle*RAD)
+84         # Xác định lại vị trí viên đạn
+85         self.x += speedX
+86         self.y += speedY
+87         self.y += A_FALL
+88         # Giảm tốc độ đạn
+89         if self.size > 0:
+90             self.size -= SPEED_CHANGE_SIZE
+91         else:
+92             self.size = 0
+93         # Giảm kích thước đạn
+94         if self.speed > 0:
+95             self.speed -= CHANGE_SPEED
+96         else:
+97             self.speed = 0
+98
+99     def draw(self): # Vẽ 1 viên đạn
+100         if self.size > 0:
+101             pygame.draw.circle(DISPLAYSURF, self.color, (int(self.x), int(self.y)), int(self.size))
+102         
+103
+104 class FireWork(): # Quả pháo hoa
+105     def __init__(self, x, y):
+106         self.x = x
+107         self.y = y
+108         self.dots = [] # List các chấm theo sau mỗi viên đạn
+109
+110         def creatBullets(): # Tạo list các viên đạn
+111             bullets = []
+112             color = Random.color()
+113             for i in range(NUM_BULLET):
+114                 angle = (360/NUM_BULLET)*i
+115                 speed = random.uniform(SPEED_MIN, SPEED_MAX)
+116                 bullets.append(Bullet(self.x, self.y, speed, angle, color))
+117             return bullets
+118         self.bullets = creatBullets();
+119
+120     def update(self):
+121         for i in range(len(self.bullets)): # update từng viên đạn
+122             self.bullets[i].update()
+123             self.dots.append(Dot(self.bullets[i].x, self.bullets[i].y, self.bullets[i].size, self.bullets[i].color))
+124         for i in range(len(self.dots)): # update từng chấm
+125             self.dots[i].update()
+126         # Xoá những chấm có kích thước <= 0
+127         i = 0
+128         while i < len(self.dots):
+129             if self.dots[i].size <= 0:
+130                 self.dots.pop(i)
+131             else:
+132                 i += 1
+133     def draw(self):
+134         for i in range(len(self.bullets)): # Vẽ từng viên đạn
+135             self.bullets[i].draw()
+136         for i in range(len(self.dots)): # Vẽ từng chấm
+137             self.dots[i].draw()
+138
+139 class Random():
+140     def __init__(self):
+141         pass
+142         
+143     def color(): # Tạo màu ngẫu nhiên (màu sáng)
+144         
+145         color1 = random.randint(0, 255)
+146         color2 = random.randint(0, 255)
+147         if color1 + color2 >= 255:
+148             color3 = random.randint(0, 255)
+149         else:
+150             color3 = random.randint(255 - color1 - color2, 255)
+151         colorList = [color1, color2, color3]
+152         random.shuffle(colorList)
+153         return colorList
+154     def num_fireworks(): # Số pháo mỗi lần bắn
+155         return random.randint(NUM_FIREWORKS_MIN, NUM_FIREWORKS_MAX)
+156     def randomBulletFlyUp_speed(): # Tốc độ viên đạn bay lên
+157         speed = random.uniform(SPEED_FLY_UP_MIN, SPEED_FLY_UP_MAX)
+158         return speed
+159     def randomBulletFlyUp_x(): # Vị trí viên đạn bay lên
+160         x = random.randint(int(WINDOWWIDTH*0.2), int(WINDOWHEIGHT*0.8))
+161         return x
+162
+163
+164
+165
+166 def main():
+167     global FPSCLOCK, DISPLAYSURF
+168     pygame.init()
+169     FPSCLOCK = pygame.time.Clock()
+170     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
+171     fireWorks = []
+172     time = TIME_CREAT_FW
+173     bulletFlyUps = []
+174     
+175     while True:
+176         DISPLAYSURF.fill((0, 0, 0)) # Xoá nền
+177         for event in pygame.event.get():
+178             if event.type == QUIT or (event.type == KEYUP and event.key == K_ESCAPE):
+179                 pygame.quit()
+180                 sys.exit()
+181         if time == TIME_CREAT_FW: # Tạo (những) viên đạn bay lên sau khoảng thời gian xác đinh
+182             for i in range(Random.num_fireworks()):
+183                 bulletFlyUps.append(BulletFlyUp(Random.randomBulletFlyUp_speed(), Random.randomBulletFlyUp_x()))
+184
+185         for i in range(len(bulletFlyUps)):
+186             bulletFlyUps[i].draw()
+187             bulletFlyUps[i].update()
+188
+189         for i in range(len(fireWorks)):
+190             fireWorks[i].draw()
+191             fireWorks[i].update()
+192
+193         i = 0
+194         while i < len(bulletFlyUps):
+195             if bulletFlyUps[i].speed <= 0: # Viên đạn bay lên đạt độ cao tối đa
+196                 fireWorks.append(FireWork(bulletFlyUps[i].x, bulletFlyUps[i].y)) # Tạo quả pháo ngay vị trí viên đạn
+197                 bulletFlyUps.pop(i) # Xoá viên đạn đó
+198             else:
+199                 i += 1
+200         # Xoá quả pháo hoa khi kích thước những viên đạn <= 0
+201         i = 0
+202         while i < len(fireWorks):
+203             if fireWorks[i].bullets[0].size <= 0:
+204                 fireWorks.pop(i)
+205             else:
+206                 i += 1
+207
+208         # Đếm khoảng thời gian bắn
+209         if time <= TIME_CREAT_FW:
+210             time += 1
+211         else:
+212             time = 0
+213         pygame.display.update()
+214         FPSCLOCK.tick(FPS)
+215
+216 if __name__ == '__main__':
+217     main()
